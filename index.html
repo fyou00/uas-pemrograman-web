@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard Proyek</title>
+  <style>
+    body {
+      background: linear-gradient(120deg, #2176ff 0%, #33a1fd 100%);
+      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 450px;
+      background: #fff;
+      margin: 60px auto 0;
+      border-radius: 18px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.14);
+      padding: 32px 24px 28px 24px;
+      animation: fadeIn 0.8s;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(30px);}
+      to   { opacity: 1; transform: translateY(0);}
+    }
+    h1 {
+      color: #2176ff;
+      text-align: center;
+      margin-bottom: 12px;
+      font-size: 2rem;
+      letter-spacing: 1px;
+    }
+    .subtitle {
+      color: #6188c9;
+      text-align: center;
+      margin-bottom: 26px;
+      font-size: 1.08rem;
+    }
+    .input-row {
+      display: flex;
+      margin-bottom: 18px;
+      gap: 8px;
+    }
+    .input-row input {
+      flex: 1;
+      padding: 10px 13px;
+      border: 1.5px solid #e0e8f8;
+      border-radius: 7px;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .input-row input:focus {
+      border-color: #2176ff;
+    }
+    .input-row button {
+      background: #2176ff;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      padding: 10px 18px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.2s;
+    }
+    .input-row button:hover {
+      background: #185bb5;
+    }
+    ul#taskList {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    ul#taskList li {
+      background: #f4f8fe;
+      margin-bottom: 12px;
+      border-radius: 8px;
+      padding: 13px 14px 13px 20px;
+      font-size: 1.07rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(33, 118, 255, 0.07);
+      animation: fadeIn 0.6s;
+      gap: 8px;
+    }
+    ul#taskList li button {
+      background: #ff4d6d;
+      border: none;
+      color: #fff;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 0.97rem;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-left: 6px;
+    }
+    ul#taskList li button.edit-btn {
+      background: #2176ff;
+    }
+    ul#taskList li button.edit-btn:hover {
+      background: #185bb5;
+    }
+    ul#taskList li button:hover:not(.edit-btn) {
+      background: #c21d39;
+    }
+    @media (max-width: 600px) {
+      .container {
+        margin: 25px 6px 0 6px;
+        padding: 18px 8px 18px 8px;
+      }
+      h1 { font-size: 1.3rem;}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Dashboard Proyek</h1>
+    <div class="subtitle">Kelola tugas proyekmu dengan mudah & cepat</div>
+    <div class="input-row">
+      <input id="task" type="text" placeholder="Tulis nama tugas...">
+      <button id="mainBtn" onclick="handleAddOrEdit()">Tambah</button>
+    </div>
+    <ul id="taskList"></ul>
+  </div>
+  <script>
+    // Contoh tugas, akan muncul hanya jika localStorage masih kosong
+    const contohTugas = [
+      "Buat dokumen perencanaan proyek",
+      "Rapat mingguan dengan tim",
+      "Update progres di dashboard"
+    ];
+
+    let stored = localStorage.getItem('tasks');
+    let tasks = [];
+
+    if (stored) {
+      tasks = JSON.parse(stored);
+    } else {
+      tasks = [...contohTugas];
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+    }
+
+    let editIdx = null;
+
+    function renderTasks() {
+      const list = document.getElementById('taskList');
+      list.innerHTML = '';
+      tasks.forEach((task, idx) => {
+        list.innerHTML += `
+          <li>
+            <span>${task}</span>
+            <div>
+              <button class="edit-btn" onclick="startEditTask(${idx})">Edit</button>
+              <button onclick="deleteTask(${idx})">Hapus</button>
+            </div>
+          </li>`;
+      });
+    }
+
+    function handleAddOrEdit() {
+      const input = document.getElementById('task');
+      if (editIdx === null) {
+        // Tambah baru
+        if (input.value.trim()) {
+          tasks.push(input.value.trim());
+          localStorage.setItem('tasks', JSON.stringify(tasks));
+          input.value = '';
+          renderTasks();
+        }
+      } else {
+        // Simpan edit
+        if (input.value.trim()) {
+          tasks[editIdx] = input.value.trim();
+          localStorage.setItem('tasks', JSON.stringify(tasks));
+          input.value = '';
+          editIdx = null;
+          document.getElementById('mainBtn').innerText = "Tambah";
+          renderTasks();
+        }
+      }
+    }
+
+    function startEditTask(idx) {
+      const input = document.getElementById('task');
+      input.value = tasks[idx];
+      input.focus();
+      editIdx = idx;
+      document.getElementById('mainBtn').innerText = "Simpan";
+    }
+
+    function deleteTask(idx) {
+      // Jika sedang mengedit yang dihapus, reset form
+      if (editIdx === idx) {
+        document.getElementById('task').value = '';
+        document.getElementById('mainBtn').innerText = "Tambah";
+        editIdx = null;
+      }
+      tasks.splice(idx, 1);
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+      renderTasks();
+    }
+
+    // Enter key support
+    document.getElementById('task').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') handleAddOrEdit();
+    });
+
+    renderTasks();
+  </script>
+</body>
+</html>
